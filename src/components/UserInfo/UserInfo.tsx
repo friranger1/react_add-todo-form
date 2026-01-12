@@ -6,8 +6,11 @@ type Props = {
 
 export const UserInfo = (props: Props) => {
   return (
-    <a className="UserInfo" href={'mailto:' + (!props.toDoInfo.user ? '' : props.toDoInfo.user.email)}>
-      {props.toDoInfo.user?.name}
+    <a
+      className="UserInfo"
+      href={'mailto:' + (!props.toDoInfo.user ? '' : props.toDoInfo.user.email)}
+    >
+      {props.toDoInfo.user.name}
     </a>
   );
 };

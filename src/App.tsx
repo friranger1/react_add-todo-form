@@ -5,14 +5,20 @@ import todosFromServer from './api/todos';
 import usersFromServer from './api/users';
 import { Todo } from './types/Todo';
 
-const todosFromServerWithUser = todosFromServer.map((todo) => {
-  const user = usersFromServer.find((userForTodo) => todo.userId === userForTodo.id)
-  return {
-    ...todo,
-    user: user!
-  }
-})
+const todosFromServerWithUser: Todo[] = todosFromServer
+  .map(todo => {
+    const foundUser = usersFromServer.find(u => u.id === todo.userId);
 
+    if (!foundUser) {
+      return null;
+    }
+
+    return {
+      ...todo,
+      user: foundUser,
+    };
+  })
+  .filter((todo): todo is Todo => todo !== null);
 
 export const App = () => {
   const [titleInput, setTitleInput] = React.useState('');
@@ -23,8 +29,9 @@ export const App = () => {
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
 
+    const foundUser = usersFromServer.find(u => u.id === Number(selectUser));
 
-    if (titleInput === '' || selectUser === '0') {
+    if (titleInput === '' || selectUser === '0' || !foundUser) {
       if (!titleInput) {
         setTitleInputTouched(true);
       }
@@ -33,15 +40,15 @@ export const App = () => {
         setSelectUserTouched(true);
       }
 
-      return
+      return;
     }
 
     const newObj: Todo = {
-      id: Math.max(0, ...toDos.map(t => t.id)) + 1,
+      id: Math.max(0, ...toDos.map(toDo => toDo.id)) + 1,
       title: titleInput,
       completed: false,
       userId: Number(selectUser),
-      user: usersFromServer.find((user) => user.id === Number(selectUser))!
+      user: foundUser,
     };
 
     setToDos([...toDos, newObj]);
@@ -63,10 +70,9 @@ export const App = () => {
             value={titleInput}
             onChange={event => setTitleInput(event.target.value)}
           />
-          {titleInputTouched &&
-            !titleInput &&
+          {titleInputTouched && !titleInput && (
             <span className="error">Please enter a title</span>
-          }
+          )}
         </div>
         <div className="field">
           <select
@@ -85,7 +91,9 @@ export const App = () => {
               );
             })}
           </select>
-          {selectUserTouched && selectUser === '0' && <span className="error">Please choose a user</span>}
+          {selectUserTouched && selectUser === '0' && (
+            <span className="error">Please choose a user</span>
+          )}
         </div>
 
         <button type="submit" data-cy="submitButton">
