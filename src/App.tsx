@@ -5,23 +5,50 @@ import todosFromServer from './api/todos';
 import usersFromServer from './api/users';
 import { Todo } from './types/Todo';
 
+const todosFromServerWithUser = todosFromServer.map((todo) => {
+  const user = usersFromServer.find((userForTodo) => todo.userId === userForTodo.id)
+  return {
+    ...todo,
+    user: user!
+  }
+})
+
+
 export const App = () => {
   const [titleInput, setTitleInput] = React.useState('');
+  const [titleInputTouched, setTitleInputTouched] = React.useState(false);
   const [selectUser, setSelectUser] = React.useState('0');
-  const [toDos, setToDos] = React.useState(todosFromServer);
+  const [selectUserTouched, setSelectUserTouched] = React.useState(false);
+  const [toDos, setToDos] = React.useState(todosFromServerWithUser);
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
 
+
+    if (titleInput === '' || selectUser === '0') {
+      if (!titleInput) {
+        setTitleInputTouched(true);
+      }
+
+      if (selectUser === '0') {
+        setSelectUserTouched(true);
+      }
+
+      return
+    }
+
     const newObj: Todo = {
-      id: toDos.length + 1,
+      id: Math.max(0, ...toDos.map(t => t.id)) + 1,
       title: titleInput,
       completed: false,
       userId: Number(selectUser),
+      user: usersFromServer.find((user) => user.id === Number(selectUser))!
     };
 
     setToDos([...toDos, newObj]);
     setTitleInput('');
     setSelectUser('0');
+    setTitleInputTouched(false);
+    setSelectUserTouched(false);
   };
 
   return (
@@ -36,11 +63,10 @@ export const App = () => {
             value={titleInput}
             onChange={event => setTitleInput(event.target.value)}
           />
-          {!titleInput ? (
+          {titleInputTouched &&
+            !titleInput &&
             <span className="error">Please enter a title</span>
-          ) : (
-            ''
-          )}
+          }
         </div>
         <div className="field">
           <select
@@ -52,14 +78,14 @@ export const App = () => {
               Choose a user
             </option>
             {usersFromServer.map(elem => {
-              return <option value={elem.id} key={elem.id}>{elem.name}</option>;
+              return (
+                <option value={elem.id} key={elem.id}>
+                  {elem.name}
+                </option>
+              );
             })}
           </select>
-          {selectUser === '0' ? (
-            <span className="error">Please choose a user</span>
-          ) : (
-            ''
-          )}
+          {selectUserTouched && selectUser === '0' && <span className="error">Please choose a user</span>}
         </div>
 
         <button type="submit" data-cy="submitButton">

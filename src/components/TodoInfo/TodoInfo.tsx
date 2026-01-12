@@ -1,13 +1,16 @@
 import { UserInfo } from '../UserInfo';
 import { Todo } from '../../types/Todo';
+import { User } from '../../types/User';
 
-type Props = { toDoInfo: Todo };
+type Props = {
+  toDoInfo: Todo;
+};
 
 export const TodoInfo = (props: Props) => {
   return (
     <article
       data-id={props.toDoInfo.id}
-      className="TodoInfo TodoInfo--completed"
+      className={`TodoInfo ${props.toDoInfo.completed ? 'TodoInfo--completed' : ''}`}
     >
       <h2 className="TodoInfo__title">{props.toDoInfo.title}</h2>
 
